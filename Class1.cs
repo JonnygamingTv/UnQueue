@@ -63,12 +63,17 @@ namespace UnQueue
 #if DEBUG
                 Rocket.Core.Logging.Logger.Log(gg[i].playerID.ToString() + " should bypass queue? (" + Provider.pending.Count.ToString() + ")");
 #endif
-                if (!gg[i].canAcceptYet) continue;
                 UnturnedPlayer player = UnturnedPlayer.FromCSteamID(gg[i].playerID.steamID);
 #if DEBUG
                 Rocket.Core.Logging.Logger.Log(player.Id.ToString() + " should bypass queue? (" + Provider.pending.Count.ToString() + ") x2");
 #endif
-                if (player.HasPermission(Configuration.Instance.Permission)) Provider.accept(gg[i]);
+                if (player.HasPermission(Configuration.Instance.Permission))
+                {
+                    gg[i].sendVerifyPacket();
+                    gg[i].inventoryDetailsReady();
+                    if (!gg[i].canAcceptYet) continue;
+                    Provider.accept(gg[i]);
+                }
             }
         }
     }
