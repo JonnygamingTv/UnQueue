@@ -68,9 +68,8 @@ namespace UnQueue
                     { // nånstans här som det pajar, kanske
                         if (i > 2)
                         {
-                            SteamPending pend = gg[i];
-                            Provider.pending.RemoveAt(i);
-                            Provider.pending.Insert(0,pend);
+                            Provider.pending.Insert(0, gg[i]);
+                            Provider.pending.RemoveAt(i+1);
                             i--;
 #if DEBUG
                             Rocket.Core.Logging.Logger.Log("Prepended " + player.Id.ToString());
