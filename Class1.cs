@@ -41,7 +41,11 @@ namespace UnQueue
         private IEnumerator loop()
         {
             yield return new WaitForSeconds(Configuration.Instance.Interval);
-            CheckQueue();
+            try
+            {
+                CheckQueue();
+            }
+            catch (Exception e) { Rocket.Core.Logging.Logger.LogException(e); }
             StartCoroutine(nameof(loop));
         }
 
@@ -55,24 +59,27 @@ namespace UnQueue
         void CheckQueue()
         {
             List<SteamPending> gg = Provider.pending;
-#if DEBUG
-            Rocket.Core.Logging.Logger.Log("Looping through " + gg.Count.ToString());
-#endif
             for (byte i = 0; i < gg.Count; i++)
             {
-#if DEBUG
-                Rocket.Core.Logging.Logger.Log(gg[i].playerID.ToString() + " should bypass queue? (" + Provider.pending.Count.ToString() + ")");
-#endif
+                if (gg[i] == null || gg[i].playerID == null || gg[i].playerID.steamID == null) continue;
                 UnturnedPlayer player = UnturnedPlayer.FromCSteamID(gg[i].playerID.steamID);
 #if DEBUG
-                Rocket.Core.Logging.Logger.Log(player.Id.ToString() + " should bypass queue? (" + Provider.pending.Count.ToString() + ") x2");
+                if (player != null && player.Id != null) Rocket.Core.Logging.Logger.Log(player.Id.ToString() + " should bypass queue? (" + Provider.pending.Count.ToString() + ")"); else Rocket.Core.Logging.Logger.Log("Player is null");
 #endif
-                if (player.HasPermission(Configuration.Instance.Permission))
+                if (player != null && player.HasPermission(Configuration.Instance.Permission))
                 {
+#if DEBUG
+                    Rocket.Core.Logging.Logger.Log("Sending verify packets to " + player.Id.ToString());
+#endif
+                    if (gg[i].canAcceptYet)
+                    {
+#if DEBUG
+                        Rocket.Core.Logging.Logger.Log("Accepting " + player.Id.ToString());
+#endif
+                        Provider.accept(gg[i]);
+                    }
                     gg[i].sendVerifyPacket();
                     gg[i].inventoryDetailsReady();
-                    if (!gg[i].canAcceptYet) continue;
-                    Provider.accept(gg[i]);
                 }
             }
         }
