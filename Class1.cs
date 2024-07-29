@@ -41,11 +41,7 @@ namespace UnQueue
         private IEnumerator loop()
         {
             yield return new WaitForSeconds(Configuration.Instance.Interval);
-            try
-            {
-                CheckQueue();
-            }
-            catch (Exception e) { Rocket.Core.Logging.Logger.LogException(e); }
+            CheckQueue();
             StartCoroutine(nameof(loop));
         }
 
@@ -60,28 +56,43 @@ namespace UnQueue
         {
             List<SteamPending> gg = Provider.pending;
             for (byte i = 0; i < gg.Count; i++)
-            {
-                if (gg[i] == null || gg[i].playerID == null || gg[i].playerID.steamID == null) continue;
-                UnturnedPlayer player = UnturnedPlayer.FromCSteamID(gg[i].playerID.steamID);
-#if DEBUG
-                if (player != null && player.Id != null) Rocket.Core.Logging.Logger.Log(player.Id.ToString() + " should bypass queue? (" + Provider.pending.Count.ToString() + ")"); else Rocket.Core.Logging.Logger.Log("Player is null");
-#endif
-                if (player != null && player.HasPermission(Configuration.Instance.Permission))
+                try
                 {
+
+                    if (gg[i] == null || gg[i].playerID == null || gg[i].playerID.steamID == null) continue;
+                    UnturnedPlayer player = UnturnedPlayer.FromCSteamID(gg[i].playerID.steamID);
 #if DEBUG
-                    Rocket.Core.Logging.Logger.Log("Sending verify packets to " + player.Id.ToString());
+                    if (player != null && player.Id != null) Rocket.Core.Logging.Logger.Log(player.Id.ToString() + " should bypass queue? (" + Provider.pending.Count.ToString() + ")"); else Rocket.Core.Logging.Logger.Log("Player is null");
 #endif
-                    if (gg[i].canAcceptYet)
-                    {
+                    if (player != null && player.HasPermission(Configuration.Instance.Permission))
+                    { // nånstans här som det pajar, kanske
+                        if (i > 2)
+                        {
+                            SteamPending pend = gg[i];
+                            Provider.pending.RemoveAt(i);
+                            Provider.pending.Insert(0,pend);
+                            i--;
 #if DEBUG
-                        Rocket.Core.Logging.Logger.Log("Accepting " + player.Id.ToString());
+                            Rocket.Core.Logging.Logger.Log("Prepended " + player.Id.ToString());
 #endif
-                        Provider.accept(gg[i]);
+                            //Provider.pending.RemoveAt(i);
+                            continue;
+                        }
+#if DEBUG
+                        Rocket.Core.Logging.Logger.Log("Sending verify packets to " + player.Id.ToString());
+#endif
+                        if (gg[i].canAcceptYet)
+                        {
+#if DEBUG
+                            Rocket.Core.Logging.Logger.Log("Accepting " + player.Id.ToString());
+#endif
+                            Provider.accept(gg[i]);
+                        }
+                        gg[i].sendVerifyPacket();
+                        gg[i].inventoryDetailsReady();
                     }
-                    gg[i].sendVerifyPacket();
-                    gg[i].inventoryDetailsReady();
                 }
-            }
+                catch (Exception e) { Rocket.Core.Logging.Logger.LogException(e); }
         }
     }
 }
