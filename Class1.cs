@@ -61,40 +61,43 @@ namespace UnQueue
                 {
                     if (Provider.pending[i] == null || Provider.pending[i].playerID.steamID == null) continue;
                     RocketPlayer player = new RocketPlayer(Provider.pending[i].playerID.steamID.ToString());
-                    
+
                     if (player != null && player.HasPermission(Configuration.Instance.Permission))
                     {
-                        if (i > 2)
-                        {
-                            Provider.pending.Insert(0, Provider.pending[i]);
-                            Provider.pending.RemoveAt(i+1);
-                            i--;
-#if DEBUG
-                            Rocket.Core.Logging.Logger.Log("Prepended " + i);
-#endif
-                            //Provider.pending.RemoveAt(i);
-                            continue;
-                        }
                         if (Provider.pending[i].canAcceptYet)
                         {
 #if DEBUG
                             Rocket.Core.Logging.Logger.Log("Accepting " + i);
 #endif
                             if (Provider.clients.Count >= Provider.maxPlayers)
-                                if (Configuration.Instance.BypassMaxPlayers) Provider.maxPlayers += 1; else continue;
+                            {
+                                if (Configuration.Instance.BypassMaxPlayers) { Provider.maxPlayers += 1; } else { PrependQue(ref i); continue; }
+                            }
                             Provider.accept(Provider.pending[i]);
+                            continue;
                         }
-                        else
-                        {
 #if DEBUG
                             Rocket.Core.Logging.Logger.Log("Sending verify packets to " + i);
 #endif
-                            Provider.pending[i].sendVerifyPacket();
-                            Provider.pending[i].inventoryDetailsReady();
-                        }
+                        Provider.pending[i].sendVerifyPacket();
+                        Provider.pending[i].inventoryDetailsReady();
+                        PrependQue(ref i);
                     }
                 }
                 catch (Exception e) { Rocket.Core.Logging.Logger.LogException(e); }
+        }
+        void PrependQue(ref byte i)
+        {
+            if (i > Configuration.Instance.PrependPosition)
+            {
+                Provider.pending.Insert(0, Provider.pending[i]);
+                Provider.pending.RemoveAt(i + 1);
+                i--;
+#if DEBUG
+                            Rocket.Core.Logging.Logger.Log("Prepended " + i);
+#endif
+                //Provider.pending.RemoveAt(i);
+            }
         }
     }
 }
