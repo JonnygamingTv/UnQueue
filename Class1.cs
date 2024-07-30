@@ -80,13 +80,18 @@ namespace UnQueue
 #if DEBUG
                             Rocket.Core.Logging.Logger.Log("Accepting " + i);
 #endif
+                            if (Provider.clients.Count >= Provider.maxPlayers)
+                                if (Configuration.Instance.BypassMaxPlayers) Provider.maxPlayers += 1; else continue;
                             Provider.accept(Provider.pending[i]);
                         }
+                        else
+                        {
 #if DEBUG
-                        Rocket.Core.Logging.Logger.Log("Sending verify packets to " + i);
+                            Rocket.Core.Logging.Logger.Log("Sending verify packets to " + i);
 #endif
-                        Provider.pending[i].sendVerifyPacket();
-                        Provider.pending[i].inventoryDetailsReady();
+                            Provider.pending[i].sendVerifyPacket();
+                            Provider.pending[i].inventoryDetailsReady();
+                        }
                     }
                 }
                 catch (Exception e) { Rocket.Core.Logging.Logger.LogException(e); }
