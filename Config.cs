@@ -9,11 +9,13 @@ namespace UnQueue
 {
     public class Config : IRocketPluginConfiguration
     {
+        public bool sync;
         public int Interval;
         public string Permission;
 
         public void LoadDefaults()
         {
+            sync = false;
             Interval = 30;
             Permission = "bypass.queue";
         }

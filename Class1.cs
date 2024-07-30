@@ -28,15 +28,16 @@ namespace UnQueue
 
         protected override void Load()
         {
-            Offload = Task.Run(() =>
-            {
-                StartCoroutine(nameof(loop));
-            });
+            Rocket.Core.Logging.Logger.Log("Loading");
+            if(Configuration.Instance.sync) StartCoroutine(nameof(loop));
+            else Offload = Task.Run(() => StartCoroutine(nameof(loop)));
+            Rocket.Core.Logging.Logger.Log("Loaded");
         }
         protected override void Unload()
         {
             StopAllCoroutines();
-            Offload.Dispose();
+            if (!Configuration.Instance.sync) Offload.Dispose();
+            Rocket.Core.Logging.Logger.Log("Unloaded");
         }
         private IEnumerator loop()
         {
@@ -54,41 +55,44 @@ namespace UnQueue
 
         void CheckQueue()
         {
-            List<SteamPending> gg = Provider.pending;
-            for (byte i = 0; i < gg.Count; i++)
+            //List<SteamPending> gg = Provider.pending;
+            for (byte i = 0; i < Provider.pending.Count; i++)
                 try
                 {
-
-                    if (gg[i] == null || gg[i].playerID == null || gg[i].playerID.steamID == null) continue;
-                    UnturnedPlayer player = UnturnedPlayer.FromCSteamID(gg[i].playerID.steamID);
+                    if (Provider.pending[i] == null || Provider.pending[i].playerID.steamID == null) continue;
+                    RocketPlayer player = new RocketPlayer(Provider.pending[i].playerID.steamID.ToString());
 #if DEBUG
-                    if (player != null && player.Id != null) Rocket.Core.Logging.Logger.Log(player.Id.ToString() + " should bypass queue? (" + Provider.pending.Count.ToString() + ")"); else Rocket.Core.Logging.Logger.Log("Player is null");
+                    if (player != null) Rocket.Core.Logging.Logger.Log(i + " should bypass queue? (" + Provider.pending.Count.ToString() + ")"); else Rocket.Core.Logging.Logger.Log("Player is null");
 #endif
+                    
                     if (player != null && player.HasPermission(Configuration.Instance.Permission))
                     { // nånstans här som det pajar, kanske
+#if DEBUG
+                        Rocket.Core.Logging.Logger.Log("Has permission: " + i);
+#endif
                         if (i > 2)
                         {
-                            Provider.pending.Insert(0, gg[i]);
+                            Provider.pending.Insert(0, Provider.pending[i]);
                             Provider.pending.RemoveAt(i+1);
                             i--;
 #if DEBUG
-                            Rocket.Core.Logging.Logger.Log("Prepended " + player.Id.ToString());
+                            Rocket.Core.Logging.Logger.Log("Prepended " + i);
 #endif
                             //Provider.pending.RemoveAt(i);
                             continue;
                         }
 #if DEBUG
-                        Rocket.Core.Logging.Logger.Log("Sending verify packets to " + player.Id.ToString());
+                        Rocket.Core.Logging.Logger.Log("Sending verify packets to " + i);
 #endif
-                        if (gg[i].canAcceptYet)
+                        if (Provider.pending[i].canAcceptYet)
                         {
 #if DEBUG
-                            Rocket.Core.Logging.Logger.Log("Accepting " + player.Id.ToString());
+                            Rocket.Core.Logging.Logger.Log("Accepting " + i);
 #endif
-                            Provider.accept(gg[i]);
+                            Provider.accept(Provider.pending[i]);
                         }
-                        gg[i].sendVerifyPacket();
-                        gg[i].inventoryDetailsReady();
+                        Provider.pending[i].sendVerifyPacket();
+                        Provider.pending[i].inventoryDetailsReady();
                     }
                 }
                 catch (Exception e) { Rocket.Core.Logging.Logger.LogException(e); }
