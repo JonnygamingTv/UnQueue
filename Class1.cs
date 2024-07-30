@@ -61,15 +61,9 @@ namespace UnQueue
                 {
                     if (Provider.pending[i] == null || Provider.pending[i].playerID.steamID == null) continue;
                     RocketPlayer player = new RocketPlayer(Provider.pending[i].playerID.steamID.ToString());
-#if DEBUG
-                    if (player != null) Rocket.Core.Logging.Logger.Log(i + " should bypass queue? (" + Provider.pending.Count.ToString() + ")"); else Rocket.Core.Logging.Logger.Log("Player is null");
-#endif
                     
                     if (player != null && player.HasPermission(Configuration.Instance.Permission))
-                    { // nånstans här som det pajar, kanske
-#if DEBUG
-                        Rocket.Core.Logging.Logger.Log("Has permission: " + i);
-#endif
+                    {
                         if (i > 2)
                         {
                             Provider.pending.Insert(0, Provider.pending[i]);
@@ -81,9 +75,6 @@ namespace UnQueue
                             //Provider.pending.RemoveAt(i);
                             continue;
                         }
-#if DEBUG
-                        Rocket.Core.Logging.Logger.Log("Sending verify packets to " + i);
-#endif
                         if (Provider.pending[i].canAcceptYet)
                         {
 #if DEBUG
@@ -91,6 +82,9 @@ namespace UnQueue
 #endif
                             Provider.accept(Provider.pending[i]);
                         }
+#if DEBUG
+                        Rocket.Core.Logging.Logger.Log("Sending verify packets to " + i);
+#endif
                         Provider.pending[i].sendVerifyPacket();
                         Provider.pending[i].inventoryDetailsReady();
                     }
