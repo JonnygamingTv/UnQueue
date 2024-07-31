@@ -31,13 +31,25 @@ namespace UnQueue
             Rocket.Core.Logging.Logger.Log("Loading");
             if(Configuration.Instance.sync) StartCoroutine(nameof(loop));
             else Offload = Task.Run(() => StartCoroutine(nameof(loop)));
+            if(Configuration.Instance.ReservedSlots != 0 && Configuration.Instance.MaxPlayers != 0)
+            {
+                Rocket.Unturned.U.Events.OnPlayerDisconnected += PDC;
+            }
             Rocket.Core.Logging.Logger.Log("Loaded");
         }
         protected override void Unload()
         {
             StopAllCoroutines();
             if (!Configuration.Instance.sync) Offload.Dispose();
+            if (Configuration.Instance.ReservedSlots != 0 && Configuration.Instance.MaxPlayers != 0)
+            {
+                Rocket.Unturned.U.Events.OnPlayerDisconnected -= PDC;
+            }
             Rocket.Core.Logging.Logger.Log("Unloaded");
+        }
+        void PDC(UnturnedPlayer player)
+        {
+            if (Provider.maxPlayers > Configuration.Instance.MaxPlayers) Provider.maxPlayers = (byte)Provider.clients.Count;
         }
         private IEnumerator loop()
         {
@@ -64,24 +76,24 @@ namespace UnQueue
 
                     if (player != null && player.HasPermission(Configuration.Instance.Permission))
                     {
+                        if (Provider.clients.Count >= Provider.maxPlayers)
+                        {
+                            if (Configuration.Instance.BypassMaxPlayers || Configuration.Instance.ReservedSlots > Provider.maxPlayers) { Provider.maxPlayers += 1; } else { PrependQue(ref i); continue; }
+                        }
                         if (Provider.pending[i].canAcceptYet)
                         {
 #if DEBUG
                             Rocket.Core.Logging.Logger.Log("Accepting " + i);
 #endif
-                            if (Provider.clients.Count >= Provider.maxPlayers)
-                            {
-                                if (Configuration.Instance.BypassMaxPlayers) { Provider.maxPlayers += 1; } else { PrependQue(ref i); continue; }
-                            }
                             Provider.accept(Provider.pending[i]);
                             continue;
                         }
 #if DEBUG
                             Rocket.Core.Logging.Logger.Log("Sending verify packets to " + i);
 #endif
+                        PrependQue(ref i);
                         Provider.pending[i].sendVerifyPacket();
                         Provider.pending[i].inventoryDetailsReady();
-                        PrependQue(ref i);
                     }
                 }
                 catch (Exception e) { Rocket.Core.Logging.Logger.LogException(e); }
@@ -92,7 +104,8 @@ namespace UnQueue
             {
                 Provider.pending.Insert(0, Provider.pending[i]);
                 Provider.pending.RemoveAt(i + 1);
-                i--;
+                // i--;
+                // Unneccessary in this case
 #if DEBUG
                             Rocket.Core.Logging.Logger.Log("Prepended " + i);
 #endif

@@ -11,16 +11,20 @@ namespace UnQueue
     {
         public bool sync;
         public bool BypassMaxPlayers;
-        public int Interval;
         public byte PrependPosition;
+        public byte MaxPlayers;
+        public byte ReservedSlots;
+        public int Interval;
         public string Permission;
 
         public void LoadDefaults()
         {
             sync = false;
             BypassMaxPlayers = false;
-            Interval = 30;
             PrependPosition = 2;
+            MaxPlayers = 24;
+            ReservedSlots = 48;
+            Interval = 10;
             Permission = "bypass.queue";
         }
     }
