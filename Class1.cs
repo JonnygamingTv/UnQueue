@@ -78,7 +78,7 @@ namespace UnQueue
                     {
                         if (Provider.clients.Count >= Provider.maxPlayers)
                         {
-                            if (Configuration.Instance.BypassMaxPlayers || Configuration.Instance.ReservedSlots > Provider.maxPlayers) { Provider.maxPlayers += 1; } else { PrependQue(ref i); continue; }
+                            if (Configuration.Instance.BypassMaxPlayers || Configuration.Instance.ReservedSlots > Provider.maxPlayers) { Provider.maxPlayers += 1; } else { PrependQue(ref i); player = null; continue; }
                         }
                         if (Provider.pending[i].canAcceptYet)
                         {
@@ -95,6 +95,7 @@ namespace UnQueue
                         Provider.pending[i].sendVerifyPacket();
                         Provider.pending[i].inventoryDetailsReady();
                     }
+                    player = null;
                 }
                 catch (Exception e) { Rocket.Core.Logging.Logger.LogException(e); }
         }
