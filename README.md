@@ -13,7 +13,7 @@ RocketMod plugin to jump through queue
 </Config>
 ```
 
-`<sync>` is whether or not the plugin should run its' checker synchronously (will freeze server)
+`<sync>` is whether or not the plugin should run its' checker synchronously (will freeze server for about a ms every check if so)
 > Recommended: `false`
 
 `<BypassMaxPlayers>` if true; infinite reservedslots
