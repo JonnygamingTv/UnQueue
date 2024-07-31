@@ -5,7 +5,7 @@ RocketMod plugin to jump through queue
 <Config xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <sync>false</sync>
   <BypassMaxPlayers>true</BypassMaxPlayers>
-  <PrependPosition>2</PrependPosition>
+  <PrependPosition>0</PrependPosition>
   <MaxPlayers>0</MaxPlayers>
   <ReservedSlots>0</ReservedSlots>
   <Interval>5</Interval>
