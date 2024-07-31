@@ -19,6 +19,9 @@ RocketMod plugin to jump through queue
 `<BypassMaxPlayers>` if true; infinite reservedslots
 > Recommended: `true`, or `false` if you have `<ReservedSlots>` configured
 
+`<PrependPosition>` if player is behind this position in queue, put them first in queue. 
+> Recommended: `0` (`0` = first in queue, so if behind first in queue, put them first)
+
 `<MaxPlayers>` the maxplayer count that the server maxplayers will go down to when people who bypassed queue (reservedslots) leave (basically)
 > Recommended: `24`, or whatever value you want to be the default playercount.
 
