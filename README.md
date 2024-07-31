@@ -24,9 +24,11 @@ RocketMod plugin to jump through queue
 
 `<MaxPlayers>` the maxplayer count that the server maxplayers will go down to when people who bypassed queue (reservedslots) leave (basically)
 > Recommended: `24`, or whatever value you want to be the default playercount.
+> Tldr: max amount of players without permission (`0` = disabled)
 
 `<ReservedSlots>` if `<MaxPlayers>` (e.g `24`) is set to something lower than `<ReservedSlots>` (e.g. `48`), it will make slots 25-48 permission-restricted
-> Recommended: `48` 
+> Recommended: `48`
+> Tldr: Real maxplayer count
 
 `<Interval>` is how often the plugin should check the queue list, I didn't find a event to listen to for this purpose, so that is why it uses a timer instead. Should be fine since it runs asynchronously by default.
 > Recommended: `10` (seconds), depends how long you wish to wait in queue in such scenarios
